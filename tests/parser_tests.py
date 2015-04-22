@@ -1,6 +1,6 @@
 from nose.tools import *
 import unittest
-from AScheme.parser import parse
+from AScheme.lispy import parse
 
 class TestParser(unittest.TestCase):
 
