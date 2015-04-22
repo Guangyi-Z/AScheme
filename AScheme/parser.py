@@ -33,4 +33,3 @@ def atom(token):
             try: return complex(token.replace('i', 'j', 1))
             except ValueError:
                 return Sym(token)
-

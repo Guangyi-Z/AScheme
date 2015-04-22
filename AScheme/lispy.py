@@ -7,11 +7,11 @@
 from __future__ import division
 import sys, StringIO
 
-from util import isa, to_string
+from util import isa, to_string, require, is_pair, cons
 from symbol import Symbol, Sym, eof_object
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
 from token import InPort
-from env import Env
+from env import Env, global_env
 from parser import read
 
 class Procedure(object):
@@ -28,14 +28,6 @@ def parse(inport):
     # Backwards compatibility: given a str, convert it to an InPort
     if isinstance(inport, str): inport = InPort(StringIO.StringIO(inport))
     return expand(read(inport), toplevel=True)
-
-def readchar(inport):
-    "Read the next character from an input port."
-    if inport.line != '':
-        ch, inport.line = inport.line[0], inport.line[1:]
-        return ch
-    else:
-        return inport.file.read(1) or eof_object
 
 def load(filename):
     "Eval every expression from a file."
@@ -56,9 +48,6 @@ def repl(prompt='lispy> ', inport=InPort(sys.stdin), out=sys.stdout):
 
 ################ Environment class
 
-def is_pair(x): return x != [] and isa(x, list)
-def cons(x, y): return [x]+y
-
 def callcc(proc):
     "Call proc with current continuation; escape only"
     ball = RuntimeWarning("Sorry, can't continue this continuation any longer.")
@@ -68,45 +57,6 @@ def callcc(proc):
     except RuntimeWarning as w:
         if w is ball: return ball.retval
         else: raise w
-
-def add_globals(self):
-    "Add some Scheme standard procedures."
-    import math, cmath, operator as op
-    self.update(vars(math))
-    self.update(vars(cmath))
-    self.update({
-     '+':op.add, '-':op.sub, '*':op.mul, '/':op.div, 'not':op.not_,
-     '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq,
-     'equal?':op.eq,
-     'eq?':op.is_,
-     'length':len,
-     'cons':cons,
-     'car':lambda x:x[0],
-     'cdr':lambda x:x[1:],
-     'append':op.add,
-     'list':lambda *x:list(x),
-     'list?': lambda x:isa(x,list),
-     'null?':lambda x:x==[],
-     'symbol?':lambda x: isa(x, Symbol),
-     'boolean?':lambda x: isa(x, bool),
-     'pair?':is_pair,
-     'port?': lambda x:isa(x,file),
-     'apply':lambda proc,l: proc(*l),
-     'eval':lambda x: eval(expand(x)),
-     'load':lambda fn: load(fn),
-     'call/cc':callcc,
-     'open-input-file':open,
-     'close-input-port':lambda p: p.file.close(),
-     'open-output-file':lambda f:open(f,'w'),
-     'close-output-port':lambda p: p.close(),
-     'eof-object?':lambda x:x is eof_object,
-     'read-char':readchar,
-     'read':read,
-     'write':lambda x,port=sys.stdout:port.write(to_string(x)),
-     'display':lambda x,port=sys.stdout:port.write(x if isa(x,str) else to_string(x))})
-    return self
-
-global_env = add_globals(Env())
 
 ################ eval (tail recursive)
 
@@ -201,10 +151,6 @@ def expand(x, toplevel=False):
     else:                                #        => macroexpand if m isa macro
         return map(expand, x)            # (f arg...) => expand each
 
-def require(x, predicate, msg="wrong length"):
-    "Signal a syntax error if predicate is false."
-    if not predicate: raise SyntaxError(to_string(x)+': '+msg)
-
 _append, _cons, _let = map(Sym, "append cons let".split())
 
 def expand_quasiquote(x):
@@ -223,7 +169,7 @@ def expand_quasiquote(x):
 
 def let(*args):
     args = list(args)
-    x = cons(_let, args)
+    x = [_let] + args
     require(x, len(args)>1)
     bindings, body = args[0], args[1:]
     require(x, all(isa(b, list) and len(b)==2 and isa(b[0], Symbol)
