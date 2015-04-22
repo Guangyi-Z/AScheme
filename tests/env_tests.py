@@ -4,7 +4,7 @@ import StringIO
 from AScheme.token import InPort
 from AScheme.repl import repl
 
-class TestParser(unittest.TestCase):
+class TestEnv(unittest.TestCase):
 
     def test_parse(self):
         src = '''

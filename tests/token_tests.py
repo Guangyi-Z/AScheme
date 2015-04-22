@@ -3,7 +3,7 @@ import unittest
 import StringIO
 from AScheme.token import InPort
 
-class TestTokenizer(unittest.TestCase):
+class TestToken(unittest.TestCase):
 
     def test_tokenizer(self):
         program = "(begin (define r 10) (* pi (* r r)))"
