@@ -2,7 +2,7 @@ from nose.tools import *
 import unittest
 import StringIO
 from AScheme.token import InPort
-from AScheme.lispy import repl
+from AScheme.repl import repl
 
 class TestParser(unittest.TestCase):
 
