@@ -1,5 +1,6 @@
 from nose.tools import *
 import unittest
+import sys
 from AScheme.lispy import parse, eval
 from AScheme.util import to_string
 
@@ -9,7 +10,9 @@ lis_tests = [
     ("(+ (* 2 100) (* 1 10))", 210),
     ("(if (> 6 5) (+ 1 1) (+ 2 2))", 2),
     ("(if (< 6 5) (+ 1 1) (+ 2 2))", 4),
-    ("(define x 3)", None), ("x", 3), ("(+ x x)", 6),
+    ("(define x 3)", None),
+    ("x", 3),
+    ("(+ x x)", 6),
     ("(begin (define x 1) (set! x (+ x 1)) (+ x 1))", 3),
     ("((lambda (x) (+ x x)) 5)", 10),
     ("(define twice (lambda (x) (* 2 x)))", None), ("(twice 5)", 10),
@@ -91,6 +94,11 @@ lispy_tests = [
     ("(sum-squares-range 1 3000)", 9004500500), ## Tests tail recursion
     ]
 
+complex_tests = [
+    ("(* 1i 1i)", -1),
+    ("(sqrt -1)", 1j),
+    ]
+
 callcc_tests = [
     ("(call/cc (lambda (throw) (+ 5 (* 10 (throw 1))))) ;; throw", 1),
     ("(call/cc (lambda (throw) (+ 5 (* 10 1)))) ;; do not throw", 15),
@@ -101,11 +109,6 @@ callcc_tests = [
     ("""(call/cc (lambda (throw)
          (+ 5 (* 10 (call/cc (lambda (escape) (* 100 1))))))) ; 0 levels""", 1005),
 ]
-
-complex_tests = [
-    ("(* 1i 1i)", -1),
-    ("(sqrt -1)", 1j),
-    ]
 
 macro_tests = [
     ("""(if (= 1 2) (define-macro a 'a)
@@ -143,24 +146,77 @@ macro_tests = [
      3) ; final comment""", [1,2,3]),
     ]
 
+literal_tests = [
+    ("1", 1),
+    ("2.5", 2.5),
+    ("#t", True),
+    ("#f", False),
+    ("'hello'", "hello"),
+    ('"hello"', "hello"),
+    ]
+
+io_tests = [
+    ("(define o (open-output-file \"out1.txt\"))", None),
+    ("(port? o)", True),
+    ("(write 123 o)", None),
+    ("(close-output-port o)", None),
+    ("(define in (open-input-file \"out1.txt\"))", None),
+    ("(port? in)", True),
+    ("(read in)", 123),
+    ("(close-input-port in)", None),
+
+    ("(define o (open-output-file \"out2.txt\"))", None),
+    ("(port? o)", True),
+    ("(write \"hello\" o)", None),
+    ("(close-output-port o)", None),
+    ("(define in (open-input-file \"out2.txt\"))", None),
+    ("(port? in)", True),
+    ("(read in)", "hello"),
+    ("(close-input-port in)", None),
+    # ("(display \"hello world\n\")", None),
+    # ("(write \"hello world2\n\")", None),
+    ]
+
 class TestEval(unittest.TestCase):
 
-    def test_lis(self):
-        for (x, expected) in lis_tests:
-            result = eval(parse(x))
-            self.assertEqual(result, expected, x + ' => ' + to_string(result))
-
-    def test_lispy(self):
-        for (x, expected) in lispy_tests:
+    def f(self, tests):
+        for (x, expected) in tests:
             result = None
             try:
                 result = eval(parse(x))
             except Exception as e:
                 print x, '=>', expected
-                self.assertTrue(
-                    issubclass(expected, Exception) and isinstance(e, expected),
-                    x + ' =raises=> ' + type(e).__name__ + str(e))
+                try:
+                    self.assertTrue(
+                        issubclass(expected, Exception) and isinstance(e, expected),
+                        x + ' =raises=> ' + type(e).__name__ + str(e))
+                except Exception as e2:
+                    raise e
             else:
                 self.assertEqual(result,
                                  expected, x + ' => ' + to_string(result))
+
+    def test_lis(self):
+        self.f(lis_tests)
+
+    def test_lispy(self):
+        self.f(lispy_tests)
+
+    def test_set(self):
+        self.f(set_tests)
+
+    def test_complext(self):
+        self.f(complex_tests)
+
+    def test_quote(self):
+        self.f(quote_tests)
+
+    def test_literal(self):
+        self.f(literal_tests)
+
+    def test_io(self):
+        # result = eval(parse("(open-output-file \"out1.txt\")"))
+        # sys.stderr.write(result.__repr__())
+
+        self.f(io_tests)
 

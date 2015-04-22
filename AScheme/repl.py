@@ -20,3 +20,6 @@ def repl(prompt='lispy> ', inport=InPort(sys.stdin), out=sys.stdout):
             if val is not None and out: print >> out, to_string(val)
         except Exception as e:
             print '%s: %s' % (type(e).__name__, e)
+
+if __name__ == '__main__':
+    repl()

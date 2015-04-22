@@ -2,6 +2,7 @@ import sys
 from util import isa, to_string, is_pair, cons, readchar
 from symbol import Symbol, eof_object
 from parser import read
+from token import InPort
 
 class Env(dict):
     "An environment: a dict of {'var':val} pairs, with an outer Env."
@@ -42,12 +43,12 @@ def add_globals(self):
      'symbol?':lambda x: isa(x, Symbol),
      'boolean?':lambda x: isa(x, bool),
      'pair?':is_pair,
-     'port?': lambda x:isa(x,file),
+     'port?': lambda x:isa(x,file) or isa(x, InPort),
      'apply':lambda proc,l: proc(*l),
      # 'eval':lambda x: eval(expand(x)),
      # 'load':lambda fn: load(fn),
      # 'call/cc':callcc,
-     'open-input-file':open,
+     'open-input-file':lambda f: InPort(open(f)),
      'close-input-port':lambda p: p.file.close(),
      'open-output-file':lambda f:open(f,'w'),
      'close-output-port':lambda p: p.close(),
