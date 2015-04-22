@@ -7,9 +7,11 @@
 from __future__ import division
 import sys, StringIO
 
+from util import isa, to_string
 from symbol import Symbol, Sym, eof_object
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
 from token import InPort
+from env import Env
 
 class Procedure(object):
     "A user-defined Scheme procedure."
@@ -66,15 +68,6 @@ def atom(token):
             except ValueError:
                 return Sym(token)
 
-def to_string(x):
-    "Convert a Python object back into a Lisp-readable string."
-    if x is True: return "#t"
-    elif x is False: return "#f"
-    elif isa(x, Symbol): return x
-    elif isa(x, str): return '"%s"' % x.encode('string_escape').replace('"',r'\"')
-    elif isa(x, list): return '('+' '.join(map(to_string, x))+')'
-    elif isa(x, complex): return str(x).replace('j', 'i')
-    else: return str(x)
 
 def load(filename):
     "Eval every expression from a file."
@@ -94,24 +87,6 @@ def repl(prompt='lispy> ', inport=InPort(sys.stdin), out=sys.stdout):
             print '%s: %s' % (type(e).__name__, e)
 
 ################ Environment class
-
-class Env(dict):
-    "An environment: a dict of {'var':val} pairs, with an outer Env."
-    def __init__(self, parms=(), args=(), outer=None):
-        # Bind parm list to corresponding args, or single parm to list of args
-        self.outer = outer
-        if isa(parms, Symbol):
-            self.update({parms:list(args)})
-        else:
-            if len(args) != len(parms):
-                raise TypeError('expected %s, given %s, '
-                                % (to_string(parms), to_string(args)))
-            self.update(zip(parms,args))
-    def find(self, var):
-        "Find the innermost Env where var appears."
-        if var in self: return self
-        elif self.outer is None: raise LookupError(var)
-        else: return self.outer.find(var)
 
 def is_pair(x): return x != [] and isa(x, list)
 def cons(x, y): return [x]+y
@@ -162,8 +137,6 @@ def add_globals(self):
      'write':lambda x,port=sys.stdout:port.write(to_string(x)),
      'display':lambda x,port=sys.stdout:port.write(x if isa(x,str) else to_string(x))})
     return self
-
-isa = isinstance
 
 global_env = add_globals(Env())
 
