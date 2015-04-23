@@ -5,7 +5,7 @@
 ################ Symbol, Procedure, classes
 
 from __future__ import division
-import sys, StringIO
+import StringIO
 
 from util import isa, to_string, require, is_pair, cons
 from symbol import Symbol, Sym, eof_object

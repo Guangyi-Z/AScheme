@@ -24,6 +24,12 @@ class Env(dict):
 
 def add_globals(self):
     "Add some Scheme standard procedures."
+
+    def display(x, port=None):
+        if port is None:
+            port = sys.stdout
+        port.write(x if isa(x,str) else to_string(x))
+
     import math, cmath, operator as op
     self.update(vars(math))
     self.update(vars(cmath))
@@ -56,8 +62,7 @@ def add_globals(self):
      'read-char':readchar,
      'read':read,
      'write':lambda x,port=sys.stdout:port.write(to_string(x)),
-     'display':lambda x,port=sys.stdout:port.write(x if isa(x,str) else to_string(x))})
+     'display':display})
     return self
 
 global_env = add_globals(Env())
-

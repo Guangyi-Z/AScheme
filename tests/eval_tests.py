@@ -1,6 +1,7 @@
 from nose.tools import *
 import unittest
 import sys
+import StringIO
 from AScheme.lispy import parse, eval
 from AScheme.util import to_string
 
@@ -173,8 +174,6 @@ io_tests = [
     ("(port? in)", True),
     ("(read in)", "hello"),
     ("(close-input-port in)", None),
-    # ("(display \"hello world\n\")", None),
-    # ("(write \"hello world2\n\")", None),
     ]
 
 class TestEval(unittest.TestCase):
@@ -185,12 +184,12 @@ class TestEval(unittest.TestCase):
             try:
                 result = eval(parse(x))
             except Exception as e:
-                print x, '=>', expected
                 try:
                     self.assertTrue(
                         issubclass(expected, Exception) and isinstance(e, expected),
                         x + ' =raises=> ' + type(e).__name__ + str(e))
                 except Exception as e2:
+                    print x, '=>', expected
                     raise e
             else:
                 self.assertEqual(result,
@@ -217,6 +216,19 @@ class TestEval(unittest.TestCase):
     def test_io(self):
         # result = eval(parse("(open-output-file \"out1.txt\")"))
         # sys.stderr.write(result.__repr__())
-
         self.f(io_tests)
 
+    def test_display(self):
+        # 'hello world\n' doesn't work
+        src = "(display \"hello world\")"
+
+        saved_stdout = sys.stdout
+        try:
+            out = StringIO.StringIO()
+            sys.stdout = out
+            res = eval(parse(src))
+            self.assertEqual(None, res)
+            output = out.getvalue().strip()
+            self.assertEqual('hello world', output)
+        finally:
+            sys.stdout = saved_stdout
