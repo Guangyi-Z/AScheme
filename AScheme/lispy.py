@@ -23,20 +23,6 @@ def parse(inport):
     if isinstance(inport, str): inport = InPort(StringIO.StringIO(inport))
     return expand(read(inport), toplevel=True)
 
-################ Environment class
-
-def callcc(proc):
-    "Call proc with current continuation; escape only"
-    ball = RuntimeWarning("Sorry, can't continue this continuation any longer.")
-    def throw(retval):
-        ball.retval = retval
-        raise ball
-    try:
-        return proc(throw)
-    except RuntimeWarning as w:
-        if w is ball: return ball.retval
-        else: raise w
-
 ################ expand
 
 def expand(x, toplevel=False):

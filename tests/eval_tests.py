@@ -233,3 +233,6 @@ class TestEval(unittest.TestCase):
             self.assertEqual('hello world', output)
         finally:
             sys.stdout = saved_stdout
+
+    def test_callcc(self):
+        self.f(callcc_tests)

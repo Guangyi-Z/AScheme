@@ -30,6 +30,18 @@ def add_globals(self):
             port = sys.stdout
         port.write(x if isa(x,str) else to_string(x))
 
+    def callcc(proc):
+        "Call proc with current continuation; escape only"
+        ball = RuntimeWarning("Sorry, can't continue this continuation any longer.")
+        def throw(retval):
+            ball.retval = retval
+            raise ball
+        try:
+            return proc(throw)
+        except RuntimeWarning as w:
+            if w is ball: return ball.retval
+            else: raise w
+
     import math, cmath, operator as op
     self.update(vars(math))
     self.update(vars(cmath))
@@ -53,7 +65,7 @@ def add_globals(self):
      'apply':lambda proc,l: proc(*l),
      # 'eval':lambda x: eval(expand(x)),
      # 'load':lambda fn: load(fn),
-     # 'call/cc':callcc,
+     'call/cc':callcc,
      'open-input-file':lambda f: InPort(open(f)),
      'close-input-port':lambda p: p.file.close(),
      'open-output-file':lambda f:open(f,'w'),
