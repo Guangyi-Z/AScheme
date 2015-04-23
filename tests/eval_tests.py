@@ -2,7 +2,8 @@ from nose.tools import *
 import unittest
 import sys
 import StringIO
-from AScheme.lispy import parse, eval
+from AScheme.lispy import parse
+from AScheme.eval import eval
 from AScheme.util import to_string
 
 lis_tests = [
