@@ -148,6 +148,22 @@ macro_tests = [
      3) ; final comment""", [1,2,3]),
     ]
 
+cond_tests = [
+    ("""(cond (#t 1)
+              (#f 2))""", 1),
+    ("""(cond (#f 1)
+              (#t 2))""", 2),
+    ("""(cond (#f 1)
+              (#f 2)
+              (else 3))""", 3),
+]
+
+cadr_tests = [
+    ("(define ls (list 1 2 3 4))", None),
+    ("(cadr ls)", 2),
+    ("(cadr (cdr ls))", 3),
+]
+
 literal_tests = [
     ("1", 1),
     ("2.5", 2.5),
@@ -239,3 +255,9 @@ class TestEval(unittest.TestCase):
 
     def test_macro(self):
         self.f(macro_tests)
+
+    def test_cond(self):
+        self.f(cond_tests)
+
+    def test_cadr(self):
+        self.f(cadr_tests)

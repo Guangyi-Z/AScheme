@@ -55,6 +55,7 @@ def add_globals(self):
      'cons':cons,
      'car':lambda x:x[0],
      'cdr':lambda x:x[1:],
+     'cadr': lambda x:x[1],
      'append':op.add,
      'list':lambda *x:list(x),
      'list?': lambda x:isa(x,list),
