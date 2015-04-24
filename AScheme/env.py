@@ -1,4 +1,5 @@
 import sys
+import gevent
 from util import isa, to_string, is_pair, cons, readchar
 from symbol import Symbol, eof_object
 from parser import read
@@ -74,7 +75,9 @@ def add_globals(self):
      'read-char':readchar,
      'read':read,
      'write':lambda x,port=sys.stdout:port.write(to_string(x)),
-     'display':display})
+     'display':display,
+     'sleep': gevent.sleep
+    })
     return self
 
 global_env = add_globals(Env())

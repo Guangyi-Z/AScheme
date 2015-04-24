@@ -20,6 +20,19 @@ spawn_tests = [
     ("(value (spawn f 1 100))", 5050),
 ]
 
+sleep_tests = [
+    ("(sleep 0.1)", None)
+]
+
+actor_tests = [
+    ('''
+     (defactor Ping (start)
+       ())
+     ''', None),
+    (),
+    (),
+]
+
 class TestEvaluator(unittest.TestCase):
 
     def f(self, tests):
@@ -41,6 +54,10 @@ class TestEvaluator(unittest.TestCase):
 
     def test_spawn(self):
         self.f(spawn_tests)
+
+    def test_sleep(self):
+        self.f(sleep_tests)
+
 
     # def test_actor(self):
     #     src = '''
