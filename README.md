@@ -92,3 +92,35 @@ When an actor receives a message, it usually takes different action based on the
 
 ###Concurrency Support
 
+###Modules Dependency
+
+```
+┌──────────┐
+│  InPort  │
+└──────────┘
+      ▲     
+      │     
+┌──────────┐
+│   read   │
+└──────────┘
+      ▲     
+      │     
+┌──────────┐
+│   Env    │
+└──────────┘
+      ▲     
+      │     
+┌──────────┐
+│   eval   │
+└──────────┘
+      ▲     
+      │     
+┌──────────┐
+│  expand  │
+└──────────┘
+      ▲     
+      │     
+┌──────────┐
+│  parse   │
+└──────────┘
+```

@@ -12,4 +12,7 @@ _quote, _if, _set, _define, _lambda, _begin, _definemacro, = map(Sym,
 _quasiquote, _unquote, _unquotesplicing = map(Sym,
 "quasiquote   unquote   unquote-splicing".split())
 
+_spawn, _join, _value = map(Sym,
+"spawn join value".split())
+
 eof_object = Symbol('#<eof-object>') # Note: uninterned; can't be read

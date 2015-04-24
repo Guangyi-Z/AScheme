@@ -1,6 +1,7 @@
 
 from util import isa, require, is_pair
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
+from symbol import _spawn, _join, _value
 from symbol import Symbol, Sym
 from eval import eval
 
@@ -55,6 +56,15 @@ def expand(x, toplevel=False):
         return expand_quasiquote(x[1])
     elif isa(x[0], Symbol) and x[0] in macro_table:
         return expand(macro_table[x[0]](*x[1:]), toplevel) # (m arg...)
+    elif x[0] is _spawn:
+        require(x, len(x)>=2)
+        return [_spawn] + map(expand, x[1:])
+    elif x[0] is _join:
+        require(x, len(x)>=2)
+        return [_join] + map(expand, x[1:])
+    elif x[0] is _value:
+        require(x, len(x)==2)
+        return [_value] + map(expand, x[1:])
     else:                                #        => macroexpand if m isa macro
         return map(expand, x)            # (f arg...) => expand each
 

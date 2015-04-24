@@ -1,7 +1,8 @@
-
+import gevent
 from util import isa
 from symbol import Symbol
 from symbol import _quote, _if, _set, _define, _lambda, _begin
+from symbol import _spawn, _join, _value
 from env import Env, global_env
 
 class Procedure(object):
@@ -44,6 +45,19 @@ def eval(x, env=global_env):
             for exp in x[1:-1]:
                 eval(exp, env)
             x = x[-1]
+        elif x[0] is _spawn:
+            proc = eval(x[1], env)
+            args = [eval(arg, env) for arg in x[2:]]
+            g = gevent.spawn(proc, *args)
+            return g
+        elif x[0] is _join:
+            print("join")
+            t = eval(x[1], env)
+            t.join()
+            return None
+        elif x[0] is _value:
+            # get value only from defined symbol
+            return env.find(x[1])[x[1]].value
         else:                    # (proc exp*)
             exps = [eval(exp, env) for exp in x]
             proc = exps.pop(0)
