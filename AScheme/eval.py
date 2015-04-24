@@ -52,12 +52,19 @@ def eval(x, env=global_env):
             return g
         elif x[0] is _join:
             print("join")
-            t = eval(x[1], env)
-            t.join()
+            for g in x[1:]:
+                t = eval(g, env)
+                t.join()
             return None
         elif x[0] is _value:
-            # get value only from defined symbol
-            return env.find(x[1])[x[1]].value
+            if isa(x[1], list):
+                g = eval(x[1], env)
+                g.join()
+            else:
+                g = env.find(x[1])[x[1]]
+                if not g.ready():
+                    g.join()
+            return g.value
         else:                    # (proc exp*)
             exps = [eval(exp, env) for exp in x]
             proc = exps.pop(0)

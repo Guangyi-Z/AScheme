@@ -13,11 +13,11 @@ spawn_tests = [
             (f (+ beg 1) end)))))''', None),
     ("(define f1 (spawn f 1 100))", None),
     ("(define f2 (spawn f 101 200))", None),
-    ("(join f1)", None),
+    ("(join f1 f2)", None),
     ("(value f1)", 5050),
-    ("(join f2)", None),
     ("(value f2)", 15050),
     ("(+ (value f1) (value f2))", 20100),
+    ("(value (spawn f 1 100))", 5050),
 ]
 
 class TestEvaluator(unittest.TestCase):
