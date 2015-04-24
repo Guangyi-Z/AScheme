@@ -2,7 +2,7 @@ from nose.tools import *
 import unittest
 import sys
 import StringIO
-from AScheme.lispy import parse
+from AScheme.parse import parse
 from AScheme.eval import eval
 from AScheme.util import to_string
 
@@ -236,3 +236,6 @@ class TestEval(unittest.TestCase):
 
     def test_callcc(self):
         self.f(callcc_tests)
+
+    def test_macro(self):
+        self.f(macro_tests)

@@ -2,7 +2,8 @@ import sys
 from symbol import eof_object
 from util import to_string
 from token import InPort
-from lispy import parse, eval
+from parse import parse
+from eval import eval
 
 def load(filename):
     "Eval every expression from a file."

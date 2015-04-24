@@ -1,4 +1,4 @@
-
+import StringIO
 from symbol import Sym, eof_object
 from symbol import _quote, _quasiquote, _unquote, _unquotesplicing
 

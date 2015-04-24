@@ -2,7 +2,6 @@
 from util import isa, require, is_pair
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
 from symbol import Symbol, Sym
-from macro import macro_table
 from eval import eval
 
 ################ expand
@@ -59,10 +58,14 @@ def expand(x, toplevel=False):
     else:                                #        => macroexpand if m isa macro
         return map(expand, x)            # (f arg...) => expand each
 
+################## macro
+
 _append, _cons, _let = map(Sym, "append cons let".split())
 
 def expand_quasiquote(x):
-    """Expand `x => 'x; `,x => x; `(,@x y) => (append x y) """
+    """Expand `x => 'x; `,x => x; `(,@x y) => (append x y)
+    quotes = {"'":_quote, "`":_quasiquote, ",":_unquote, ",@":_unquotesplicing}
+    """
     if not is_pair(x):
         return [_quote, x]
     require(x, x[0] is not _unquotesplicing, "can't splice here")
@@ -74,3 +77,17 @@ def expand_quasiquote(x):
         return [_append, x[0][1], expand_quasiquote(x[1:])]
     else:
         return [_cons, expand_quasiquote(x[0]), expand_quasiquote(x[1:])]
+
+# macro: let
+def let(*args):
+    args = list(args)
+    x = [_let] + args
+    require(x, len(args)>1)
+    bindings, body = args[0], args[1:]
+    require(x, all(isa(b, list) and len(b)==2 and isa(b[0], Symbol)
+                   for b in bindings), "illegal binding list")
+    vars, vals = zip(*bindings)
+    return [[_lambda, list(vars)]+map(expand, body)] + map(expand, vals)
+
+macro_table = {_let:let} ## More macros can go here
+
