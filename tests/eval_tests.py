@@ -156,6 +156,10 @@ cond_tests = [
     ("""(cond (#f 1)
               (#f 2)
               (else 3))""", 3),
+    ("""(cond (#t 1 2 3))""", 3),
+    ("""(cond (#f 1)
+              (#f 2)
+              (else 1 2 3))""", 3),
 ]
 
 cadr_tests = [

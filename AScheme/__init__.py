@@ -19,8 +19,8 @@ eval(parse("""
 (define-macro cond (lambda args
   (let ((hd (car args)))
     (if (= "else" (car hd))
-      (cadr hd)
+      `(begin ,@(cdr hd))
       (if (car hd)
-        (cadr hd)
+        `(begin ,@(cdr hd))
         `(cond ,@(cdr args)))))))
 """))
