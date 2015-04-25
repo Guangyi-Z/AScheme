@@ -3,6 +3,7 @@ from util import isa, require, is_pair
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
 from symbol import _spawn, _join, _value
 from symbol import _defineactor, _spawnactor, _startactor, _joinactor
+from symbol import _send, _rcv, _makemsg, _getinfo, _getsender
 from symbol import Symbol, Sym
 from eval import eval
 
@@ -77,6 +78,21 @@ def expand(x, toplevel=False):
     elif x[0] is _joinactor:
         require(x, len(x)>=2)
         return [_joinactor] + map(expand, x[1:])
+    elif x[0] is _send:
+        require(x, len(x)==3)
+        return [_send] + map(expand, x[1:])
+    elif x[0] is _rcv:
+        require(x, len(x)==1)
+        return x
+    elif x[0] is _makemsg:
+        require(x, len(x)==2)
+        return [_makemsg] + map(expand, x[1:])
+    elif x[0] is _getinfo:
+        require(x, len(x)==2)
+        return [_getinfo] + map(expand, x[1:])
+    elif x[0] is _getsender:
+        require(x, len(x)==2)
+        return [_getsender] + map(expand, x[1:])
     else:                                #        => macroexpand if m isa macro
         return map(expand, x)            # (f arg...) => expand each
 

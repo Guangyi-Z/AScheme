@@ -18,4 +18,7 @@ _spawn, _join, _value = map(Sym,
 _defineactor, _spawnactor, _startactor, _joinactor = map(Sym,
 "define-actor spawn-actor start-actor join-actor".split())
 
+_send, _rcv, _makemsg, _getinfo, _getsender = map(Sym,
+"! rcv make-msg get-info get-sender".split())
+
 eof_object = Symbol('#<eof-object>') # Note: uninterned; can't be read

@@ -6,6 +6,7 @@ from symbol import Symbol
 from symbol import _quote, _if, _set, _define, _lambda, _begin
 from symbol import _spawn, _join, _value
 from symbol import _defineactor, _spawnactor, _startactor, _joinactor
+from symbol import _send, _rcv, _makemsg, _getinfo, _getsender
 from env import Env, global_env
 
 class Procedure(object):
@@ -30,6 +31,17 @@ class Actor(Greenlet):
     def _run(self):
         self.running = True
         self.func(*self.args_)
+
+class Message():
+    def __init__(self, s):
+        self.info = s
+        self.sender = gevent.getcurrent()
+
+    def get_info(self):
+        return self.info
+
+    def get_sender(self):
+        return self.sender
 
 ################ eval (tail recursive)
 
@@ -98,6 +110,21 @@ def eval(x, env=global_env):
                 g = eval(x[1], env)
                 g.join()
             return None
+        elif x[0] is _send:
+            rcv = eval(x[1], env)
+            msg = eval(x[2], env)
+            rcv.inbox.put(msg)
+            return None
+        elif x[0] is _rcv:
+            return gevent.getcurrent().inbox.get()
+        elif x[0] is _makemsg:
+            return Message(eval(x[1], env))
+        elif x[0] is _getinfo:
+            msg = eval(x[1], env)
+            return msg.get_info()
+        elif x[0] is _getsender:
+            msg = eval(x[1], env)
+            return msg.get_sender()
         else:                    # (proc exp*)
             exps = [eval(exp, env) for exp in x]
             proc = exps.pop(0)
