@@ -4,9 +4,9 @@ import StringIO
 from AScheme.token import InPort
 from AScheme.repl import repl
 
-class TestEnv(unittest.TestCase):
+class TestREPL(unittest.TestCase):
 
-    def test_parse(self):
+    def test_repl(self):
         src = '''
         (define r 10)
         (* r r)

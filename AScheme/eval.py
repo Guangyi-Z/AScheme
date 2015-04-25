@@ -1,8 +1,11 @@
 import gevent
+from gevent.queue import Queue
+from gevent import Greenlet
 from util import isa
 from symbol import Symbol
 from symbol import _quote, _if, _set, _define, _lambda, _begin
 from symbol import _spawn, _join, _value
+from symbol import _defineactor, _spawnactor, _startactor, _joinactor
 from env import Env, global_env
 
 class Procedure(object):
@@ -11,6 +14,22 @@ class Procedure(object):
         self.parms, self.exp, self.env = parms, exp, env
     def __call__(self, *args):
         return eval(self.exp, Env(self.parms, args, self.env))
+
+class Actor(Greenlet):
+
+    def __init__(self, func, *args):
+        self.inbox = Queue()
+        self.func = func
+        self.args_ = list(args) # self.args is used by Greenlet internally
+        Greenlet.__init__(self)
+
+    def receive(self):
+        message = self.inbox.get()
+        return message
+
+    def _run(self):
+        self.running = True
+        self.func(*self.args_)
 
 ################ eval (tail recursive)
 
@@ -51,7 +70,6 @@ def eval(x, env=global_env):
             g = gevent.spawn(proc, *args)
             return g
         elif x[0] is _join:
-            print("join")
             for g in x[1:]:
                 t = eval(g, env)
                 t.join()
@@ -65,6 +83,21 @@ def eval(x, env=global_env):
                 if not g.ready():
                     g.join()
             return g.value
+        elif x[0] is _spawnactor:
+            proc = eval(x[1], env)
+            args = [eval(arg, env) for arg in x[2:]]
+            g = Actor(proc, *args)
+            return g
+        elif x[0] is _startactor:
+            for g in x[1:]:
+                t = eval(g, env)
+                t.start()
+            return None
+        elif x[0] is _joinactor:
+            if isa(x[1], list):
+                g = eval(x[1], env)
+                g.join()
+            return None
         else:                    # (proc exp*)
             exps = [eval(exp, env) for exp in x]
             proc = exps.pop(0)

@@ -15,4 +15,7 @@ _quasiquote, _unquote, _unquotesplicing = map(Sym,
 _spawn, _join, _value = map(Sym,
 "spawn join value".split())
 
+_defineactor, _spawnactor, _startactor, _joinactor = map(Sym,
+"define-actor spawn-actor start-actor join-actor".split())
+
 eof_object = Symbol('#<eof-object>') # Note: uninterned; can't be read

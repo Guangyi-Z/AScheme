@@ -1,5 +1,7 @@
 from nose.tools import *
 import unittest
+import sys
+import StringIO
 from AScheme.parse import parse
 from AScheme.eval import eval
 from AScheme.util import to_string
@@ -25,12 +27,42 @@ sleep_tests = [
 ]
 
 actor_tests = [
-    ('''
-     (defactor Ping (start)
-       ())
-     ''', None),
-    (),
-    (),
+
+    # ('''
+    #  (define-actor echo-receiver ()
+    #    (let ((m (rcv)))
+    #      (let ((msg (get-info m)))
+    #        (display msg))))
+    #  ''', None),
+    # ('''
+    #  (define-actor echo-sender (e)
+    #    (let ((m (make-msg "hello world")))
+    #      (! e m))
+    #  ''', None),
+    # ("(define e1 (spawn-actor echo-receiver))", None),
+    # ("(define s1 (spawn-actor echo-sender))", None),
+    # ("(start-actor e1)", None),
+    # ("(start-actor s1)", None),
+
+    # ('''
+    #  (defactor Ping (pong)
+    #    (define (f)
+    #      (let ((m (rcv)))
+    #        (let ((msg (get-info m)))
+    #          (cond ((= "finish" msg) (! pong "finish") (display "Ping finished"))
+    #                (else (! pong "ping") (f))))))
+    #    (f))
+    #  ''', None),
+    # ('''
+    #  (defactor Pong ()
+    #    (define (f)
+    #      (let ((m (rcv)))
+    #        (let ((msg (get-info m))
+    #              (sdr (get-sender m)))
+    #          (cond ((= "ping" msg) (! sdr "pong") (f))
+    #                (else (display "Pong finished"))))))
+    #    (f))
+    #  ''', None),
 ]
 
 class TestEvaluator(unittest.TestCase):
@@ -58,6 +90,27 @@ class TestEvaluator(unittest.TestCase):
     def test_sleep(self):
         self.f(sleep_tests)
 
+    def test_actor_echo(self):
+        # 'hello world\n' doesn't work
+        src = '''
+        (begin
+          (define-actor (echo s)
+            (display s))
+          (define e (spawn-actor echo \"hello, echo\"))
+          (start-actor e)
+          (sleep 0.1)
+          (join-actor e))
+        '''
+
+        saved_stdout = sys.stdout
+        try:
+            out = StringIO.StringIO()
+            sys.stdout = out
+            eval(parse(src))
+            output = out.getvalue().strip()
+            self.assertEqual('hello, echo', output)
+        finally:
+            sys.stdout = saved_stdout
 
     # def test_actor(self):
     #     src = '''

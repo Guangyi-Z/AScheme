@@ -2,6 +2,7 @@
 from util import isa, require, is_pair
 from symbol import _quote, _if, _set, _define, _lambda, _begin, _definemacro, _quasiquote, _unquote, _unquotesplicing
 from symbol import _spawn, _join, _value
+from symbol import _defineactor, _spawnactor, _startactor, _joinactor
 from symbol import Symbol, Sym
 from eval import eval
 
@@ -24,7 +25,9 @@ def expand(x, toplevel=False):
         var = x[1]                       # (set! non-var exp) => Error
         require(x, isa(var, Symbol), "can set! only a symbol")
         return [_set, var, expand(x[2])]
-    elif x[0] is _define or x[0] is _definemacro:
+    elif x[0] is _define or \
+         x[0] is _definemacro or \
+         x[0] is _defineactor:
         require(x, len(x)>=3)
         _def, v, body = x[0], x[1], x[2:]
         if isa(v, list) and v:           # (define (f args) body)
@@ -65,6 +68,15 @@ def expand(x, toplevel=False):
     elif x[0] is _value:
         require(x, len(x)==2)
         return [_value] + map(expand, x[1:])
+    elif x[0] is _spawnactor:
+        require(x, len(x)>=2)
+        return [_spawnactor] + map(expand, x[1:])
+    elif x[0] is _startactor:
+        require(x, len(x)>=2)
+        return [_startactor] + map(expand, x[1:])
+    elif x[0] is _joinactor:
+        require(x, len(x)>=2)
+        return [_joinactor] + map(expand, x[1:])
     else:                                #        => macroexpand if m isa macro
         return map(expand, x)            # (f arg...) => expand each
 
@@ -90,6 +102,11 @@ def expand_quasiquote(x):
 
 # macro: let
 def let(*args):
+    """style like
+    (let ((a 1)
+          (b a))
+          b)
+    is not supported"""
     args = list(args)
     x = [_let] + args
     require(x, len(args)>1)
