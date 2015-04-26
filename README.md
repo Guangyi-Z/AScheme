@@ -1,96 +1,90 @@
 ##ActorScm
 
 A toy Scheme interpreter written in Python, with extra built-in concurrency support, a simple Actor-Model framework.
-Let’s name it ActorScm.
+Thus I call it **AScheme**.
 
-The concurrency mechanism is based on Python’s ``gevent`` framework.
+The interpreter is built on top of [lispy](http://norvig.com/lispy2.html),
+and the concurrency mechanism is based on Python’s ``gevent`` package.
 
-###Syntax
+###Try the Ping/Pong Examples
 
-stage 1
+First get the environment and dependencies prepared.
+
+```sh
+virtualenv venv
+source vene/bi/activate
+pip install nose
+pip install gevent
+```
+
+Then run the Ping/Pong example.
+
+```
+source vene/bi/activate
+python run_examples.py
+```
+
+###Concurrent Support
+
+####Naive Concurrency
 
 ```scheme
-(spawn f args...)   ; => pid
-(join pid)  ; => result
+(define (f args...) body)
+(define pid (spawn f args...))
+(join pid)
+(value pid)  ; => result
 ```
 
-final stage
+####Actor Model
+
+Sender/Receiver example
+
+```
+(define-actor (receiver)
+  (let ((m (rcv)))
+    (let ((msg (get-info m)))
+      (display msg)
+      (display "\n"))))
+(define-actor (sender r)
+  (! r "hello, world"))
+(define r (spawn-actor receiver))
+(define s (spawn-actor sender r))
+(start-actor r s)
+(sleep 1)
+(join-actor r s)
+```
+
+Ping/Pong example
 
 ```scheme
-(defactor ANAME [args] body)
-(make-msg sender-aid info)  ; => msg
-(get-sender msg)    ; => aid
-(get-info msg)   ; => info
-(self)  ; => aid
-
-(spawn ANAME args)  ; => aid
-(! aid msg)
+(define-actor (Ping pong)
+  (define (f)
+    (let ((m (rcv)))
+      (let ((info (get-info m)))
+        (display "Ping < ")
+        (display info)
+        (display "\n")
+        (cond ((= "finish" info) (! pong "finish") (display "Ping finished"))
+              (else (display "ping") (display "\n") (! pong "ping") (f))))))
+  (f))
+(define-actor (Pong)
+  (define (f)
+    (let ((m (rcv)))
+      (let ((info (get-info m))
+            (sdr (get-sender m)))
+        (display "Pong < ")
+        (display info)
+        (display "\n")
+        (cond ((= "ping" info) (display "pong") (display "\n") (! sdr "pong") (f))
+            (else (display "Pong finished"))))))
+  (f))
+(define pong (spawn-actor Pong))
+(define ping (spawn-actor Ping pong))
+(start-actor pong ping)
+(! ping "pong")
+(sleep 1)
+(! ping "finish")
 ```
-
-####libactor
-
-```c
-void *pong_func(void *args) {
-	actor_msg_t *msg;
-	
-	while(1) {
-		msg = actor_receive();
-		if(msg->type == PING_MSG) {
-			printf("PING! ");
-			actor_reply_msg(msg, PONG_MSG, NULL, 0);
-		}
-		arelease(msg);
-	}
-	return 0;
-}
-
-void *ping_func(void *args) {
-	actor_msg_t *msg;
-	actor_id aid = spawn_actor(pong_func, NULL);
-	while(1) {
-		actor_send_msg(aid, PING_MSG, NULL, 0);
-		msg = actor_receive();
-		if(msg->type == PONG_MSG) printf("PONG!\n");
-		arelease(msg);
-		sleep(5);
-	}
-	return 0;
-}
-```
-
-####Pulsar
-
-    (spawn f arg1 arg2)
-This will create a new actor, and start running it in a new fiber.
-
-An actor’s mailbox is a channel, that can be obtained with the ``mailbox-of`` function. 
-You can therefore send a message to an actor like so:
-Instead of snd we normally use the ! (bang) function to send a message to an actor, like so:
-    (snd (mailbox-of actor) msg)
-    (snd actor msg)
-    (! actor msg)
-
-In many circumstances, an actor sends a message to another actor, and expects a reply. 
-In those circumstances, using !! instead of ! might offer reduced latency
-
-The value @self, when evaluated in an actor, returns the actor.
-    (rcv (mailbox-of @self))
-    (rcv @mailbox)
-    (rcv @self)
-    (receive)
-
-pattern matching
-When an actor receives a message, it usually takes different action based on the type and content of the message.
-
-####Actor-Based Concurrency
-
-* Actor
-* Mailbox
-* Load Factor Buffer
-* Message
-* Executor
-
-###Concurrency Support
 
 ###Modules Dependency
 
