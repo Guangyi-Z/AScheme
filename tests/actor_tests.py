@@ -26,29 +26,6 @@ sleep_tests = [
     ("(sleep 0.1)", None)
 ]
 
-actor_tests = [
-
-    # ('''
-    #  (defactor Ping (pong)
-    #    (define (f)
-    #      (let ((m (rcv)))
-    #        (let ((msg (get-info m)))
-    #          (cond ((= "finish" msg) (! pong "finish") (display "Ping finished"))
-    #                (else (! pong "ping") (f))))))
-    #    (f))
-    #  ''', None),
-    # ('''
-    #  (defactor Pong ()
-    #    (define (f)
-    #      (let ((m (rcv)))
-    #        (let ((msg (get-info m))
-    #              (sdr (get-sender m)))
-    #          (cond ((= "ping" msg) (! sdr "pong") (f))
-    #                (else (display "Pong finished"))))))
-    #    (f))
-    #  ''', None),
-]
-
 class TestEvaluator(unittest.TestCase):
 
     def f(self, tests):
@@ -103,7 +80,7 @@ class TestEvaluator(unittest.TestCase):
               (let ((msg (get-info m)))
                 (display msg))))
           (define-actor (sender r)
-            (! r (make-msg "hello, world")))
+            (! r "hello, world"))
           (define r (spawn-actor receiver))
           (define s (spawn-actor sender r))
           (start-actor r s)
@@ -120,7 +97,6 @@ class TestEvaluator(unittest.TestCase):
             self.assertEqual('hello, world', output)
         finally:
             sys.stdout = saved_stdout
-
 
     # def test_actor(self):
     #     src = '''

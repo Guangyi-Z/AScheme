@@ -1,4 +1,5 @@
 import gevent
+import sys
 from gevent.queue import Queue
 from gevent import Greenlet
 from util import isa
@@ -21,7 +22,7 @@ class Actor(Greenlet):
     def __init__(self, func, *args):
         self.inbox = Queue()
         self.func = func
-        self.args_ = list(args) # self.args is used by Greenlet internally
+        self.args_ = args # self.args is used by Greenlet internally
         Greenlet.__init__(self)
 
     def receive(self):
@@ -76,6 +77,7 @@ def eval(x, env=global_env):
             for exp in x[1:-1]:
                 eval(exp, env)
             x = x[-1]
+        #################### spawn, join, value
         elif x[0] is _spawn:
             proc = eval(x[1], env)
             args = [eval(arg, env) for arg in x[2:]]
@@ -95,6 +97,7 @@ def eval(x, env=global_env):
                 if not g.ready():
                     g.join()
             return g.value
+        #################### actor
         elif x[0] is _spawnactor:
             proc = eval(x[1], env)
             args = [eval(arg, env) for arg in x[2:]]
@@ -112,11 +115,14 @@ def eval(x, env=global_env):
             return None
         elif x[0] is _send:
             rcv = eval(x[1], env)
-            msg = eval(x[2], env)
+            info = eval(x[2], env)
+            msg = Message(info)
             rcv.inbox.put(msg)
             return None
         elif x[0] is _rcv:
             return gevent.getcurrent().inbox.get()
+        # elif x[0] is _self:
+        #     pass
         elif x[0] is _makemsg:
             return Message(eval(x[1], env))
         elif x[0] is _getinfo:
