@@ -24,6 +24,21 @@ source vene/bi/activate
 python run_examples.py
 ```
 
+###Scheme’s Features
+
+* Data Type: number, string, boolean, complex, quote, comment
+* Function and Definition: ``define``, ``lambda``
+* Logic: ``if``
+* Macro System: ``define-macro``, so far macro ``let``, ``and``, ``cond`` have been implemented
+* I/O: port
+* Tail Call Optimization
+* Call-with-current-continuation: ``call/cc``
+
+Besides, a large number of built-in functions are provided, thanks to Python’s powerful utilities.
+
+On the whole, AScheme is pretty complete compared to the standard, 
+and it’s enough for you to write most of the Scheme programs.
+
 ###Concurrent Support
 
 ####Naive Concurrency
