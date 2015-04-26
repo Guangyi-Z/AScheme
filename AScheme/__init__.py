@@ -17,10 +17,12 @@ eval(parse("""(begin
 eval(parse("""
 ;; cond
 (define-macro cond (lambda args
-  (let ((hd (car args)))
-    (if (= "else" (car hd))
-      `(begin ,@(cdr hd))
-      `(if ,(car hd)
-        (begin ,@(cdr hd))
-        (cond ,@(cdr args)))))))
+  (if (not (null? args))
+    (let ((hd (car args)))
+      (if (= "else" (car hd))
+        `(begin ,@(cdr hd))
+        `(if ,(car hd)
+             (begin ,@(cdr hd))
+             (if ,(not (null? args))
+               (cond ,@(cdr args)))))))))
 """))
