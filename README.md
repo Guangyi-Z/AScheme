@@ -29,17 +29,27 @@ python run_examples.py
 ####Naive Concurrency
 
 ```scheme
-(define (f args...) body)
-(define pid (spawn f args...))
-(join pid)
-(value pid)  ; => result
+(define f (lambda (beg end)
+  (if (= beg end)
+    end
+    (+ beg
+      (f (+ beg 1) end)))))
+
+(define f1 (spawn f 1 100))
+(define f2 (spawn f 101 200))
+(join f1 f2)
+(value f1)  ; => 5050
+(value f2)  ; => 15050
+(+ (value f1) (value f2))  ; => 20100
+
+(value (spawn f 1 100))  ; => 5050
 ```
 
 ####Actor Model
 
 Sender/Receiver example
 
-```
+```scheme
 (define-actor (receiver)
   (let ((m (rcv)))
     (let ((msg (get-info m)))
